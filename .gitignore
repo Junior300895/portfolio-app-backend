@@ -1,0 +1,73 @@
+# ── Maven ─────────────────────────────────────────
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ── Java ──────────────────────────────────────────
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# ── IDE — IntelliJ IDEA ───────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ── IDE — Eclipse ─────────────────────────────────
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+bin/
+
+# ── IDE — VS Code ─────────────────────────────────
+.vscode/
+
+# ── Spring Boot ───────────────────────────────────
+/src/main/resources/application-local.properties
+/src/main/resources/application-prod.properties
+/src/main/resources/application-staging.properties
+
+# ── Fichiers uploadés (ne pas versionner les médias) ──
+uploads/
+portfolio-uploads/
+
+# ── Logs ──────────────────────────────────────────
+*.log
+logs/
+spring.log
+
+# ── OS ────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ── Variables d'environnement ─────────────────────
+.env
+.env.local
+.env.production
+*.env
+
+# ── Cloudinary (ne jamais versionner les clés API) ──
+# Utilisez des variables d'environnement :
+# CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
