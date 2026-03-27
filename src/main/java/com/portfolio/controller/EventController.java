@@ -4,10 +4,13 @@ import com.portfolio.dto.DtoClasses.*;
 import com.portfolio.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/events")
@@ -21,7 +24,9 @@ public class EventController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String category) {
-        return ResponseEntity.ok(ApiResponse.ok(eventService.getEvents(page, size, category)));
+        return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(1, TimeUnit.MINUTES).cachePublic())
+        .body(ApiResponse.ok(eventService.getEvents(page, size, category)));
     }
 
     @GetMapping("/{id}")
