@@ -31,12 +31,16 @@ public class EventController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EventDetailDTO>> getEvent(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok(eventService.getEventById(id)));
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
+                .body(ApiResponse.ok(eventService.getEventById(id)));
     }
 
     @GetMapping("/featured")
     public ResponseEntity<ApiResponse<List<EventSummaryDTO>>> getFeatured() {
-        return ResponseEntity.ok(ApiResponse.ok(eventService.getFeaturedEvents()));
+         return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
+                .body(ApiResponse.ok(eventService.getFeaturedEvents()));
     }
 
     @GetMapping("/categories")
