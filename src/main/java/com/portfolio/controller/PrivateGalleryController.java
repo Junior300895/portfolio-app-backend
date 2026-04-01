@@ -47,6 +47,13 @@ public class PrivateGalleryController {
         return ResponseEntity.ok(ApiResponse.ok("Galerie désactivée", null));
     }
 
+    /** Réactiver une galerie désactivée */
+    @PutMapping("/api/admin/private-galleries/{id}/reactivate")
+    public ResponseEntity<ApiResponse<Void>> reactivate(@PathVariable Long id) {
+        privateGalleryService.reactivateGallery(id);
+        return ResponseEntity.ok(ApiResponse.ok("Galerie réactivée", null));
+    }
+
     /** Supprimer définitivement une galerie */
     @DeleteMapping("/api/admin/private-galleries/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {

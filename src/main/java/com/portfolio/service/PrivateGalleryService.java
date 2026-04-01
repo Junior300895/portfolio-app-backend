@@ -84,6 +84,13 @@ public class PrivateGalleryService {
         galleryRepository.save(gallery);
     }
 
+    public void reactivateGallery(Long id) {
+        PrivateGallery gallery = galleryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Galerie non trouvée: " + id));
+        gallery.setActive(true);
+        galleryRepository.save(gallery);
+    }
+
     public void deleteGallery(Long id) {
         if (!galleryRepository.existsById(id))
             throw new EntityNotFoundException("Galerie non trouvée: " + id);
