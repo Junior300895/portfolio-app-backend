@@ -157,4 +157,52 @@ public class DtoClasses {
         private Event.EventCategory category;
         private long count;
     }
+
+    // ── Galerie Privée ────────────────────────────────────────────
+
+    @Data @NoArgsConstructor @AllArgsConstructor
+    public static class CreatePrivateGalleryRequest {
+        @NotNull(message = "L'ID événement est obligatoire")
+        private Long eventId;
+        @NotBlank(message = "Le nom du client est obligatoire")
+        private String clientName;
+        private String clientEmail;
+        private String password;          // null = pas de mot de passe
+        private Integer expirationDays;   // null = permanent
+    }
+
+    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class PrivateGalleryDTO {
+        private Long id;
+        private Long eventId;
+        private String eventTitle;
+        private String accessToken;
+        private String clientName;
+        private String clientEmail;
+        private boolean hasPassword;
+        private java.time.LocalDateTime expiresAt;
+        private java.time.LocalDateTime createdAt;
+        private Integer downloadCount;
+        private Integer viewCount;
+        private Boolean active;
+        private boolean expired;
+    }
+
+    @Data @NoArgsConstructor @AllArgsConstructor
+    public static class PrivateGalleryAccessRequest {
+        private String password;   // null si pas de mot de passe requis
+    }
+
+    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class PrivateGalleryContentDTO {
+        private Long galleryId;
+        private String clientName;
+        private String eventTitle;
+        private java.time.LocalDate eventDate;
+        private String eventLocation;
+        private java.time.LocalDateTime expiresAt;
+        private List<PhotoDTO> photos;
+        private List<Long> favoritePhotoIds;
+        private Integer totalPhotos;
+    }
 }

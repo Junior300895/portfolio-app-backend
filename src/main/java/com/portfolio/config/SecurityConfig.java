@@ -53,6 +53,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/api/media/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                // Galeries privées client
+                .requestMatchers(HttpMethod.GET,  "/api/gallery/private/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/gallery/private/**").permitAll()
 
                 // ── Swagger UI ──
                 .requestMatchers(
