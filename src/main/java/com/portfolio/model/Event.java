@@ -43,6 +43,10 @@ public class Event {
     @Builder.Default
     private Boolean featured = false;
 
+    @Column(name = "is_private", nullable = false)
+    @Builder.Default
+    private Boolean isPrivate = false;
+
     @Column(name = "cover_photo")
     private String coverPhoto;
 

@@ -22,6 +22,7 @@ public class DtoClasses {
         private String location;
         private Event.EventCategory category;
         private Boolean featured;
+        private Boolean isPrivate;
         private String coverPhoto;
         private long photoCount;
         private long videoCount;
@@ -37,6 +38,7 @@ public class DtoClasses {
         private String location;
         private Event.EventCategory category;
         private Boolean featured;
+        private Boolean isPrivate;
         private String coverPhoto;
         private List<PhotoDTO> photos;
         private List<VideoDTO> videos;
@@ -74,6 +76,7 @@ public class DtoClasses {
         private String location;
         private Event.EventCategory category;
         private Boolean featured = false;
+        private Boolean isPrivate = false;
     }
 
     @Data @NoArgsConstructor @AllArgsConstructor

@@ -58,6 +58,18 @@ public class EventService {
     public EventDetailDTO getEventById(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Événement non trouvé: " + id));
+        // Bloquer uniquement l'accès au détail (photos/vidéos), pas à la liste
+        if (Boolean.TRUE.equals(event.getIsPrivate())) {
+            throw new SecurityException("Cet événement est privé. Accédez à vos photos via le lien qui vous a été envoyé.");
+        }
+        return toDetailDTO(event);
+    }
+
+    // Accès admin — pas de restriction sur les événements privés
+    @Transactional(readOnly = true)
+    public EventDetailDTO getEventByIdAdmin(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Événement non trouvé: " + id));
         return toDetailDTO(event);
     }
 
@@ -92,6 +104,7 @@ public class EventService {
                 .location(req.getLocation())
                 .category(req.getCategory())
                 .featured(req.getFeatured() != null ? req.getFeatured() : false)
+                .isPrivate(req.getIsPrivate() != null ? req.getIsPrivate() : false)
                 .build();
         return toDetailDTO(eventRepository.save(event));
     }
@@ -105,6 +118,7 @@ public class EventService {
         if (req.getLocation() != null) event.setLocation(req.getLocation());
         if (req.getCategory() != null) event.setCategory(req.getCategory());
         if (req.getFeatured() != null) event.setFeatured(req.getFeatured());
+        if (req.getIsPrivate() != null) event.setIsPrivate(req.getIsPrivate());
         return toDetailDTO(eventRepository.save(event));
     }
 
@@ -204,6 +218,7 @@ public class EventService {
                 .id(e.getId()).title(e.getTitle()).description(e.getDescription())
                 .eventDate(e.getEventDate()).location(e.getLocation())
                 .category(e.getCategory()).featured(e.getFeatured())
+                .isPrivate(e.getIsPrivate())
                 .coverPhoto(e.getCoverPhoto())
                 .photoCount(photoRepository.countByEventId(e.getId()))
                 .videoCount(videoRepository.countByEventId(e.getId()))
@@ -216,6 +231,7 @@ public class EventService {
                 .id(e.getId()).title(e.getTitle()).description(e.getDescription())
                 .eventDate(e.getEventDate()).location(e.getLocation())
                 .category(e.getCategory()).featured(e.getFeatured())
+                .isPrivate(e.getIsPrivate())
                 .coverPhoto(e.getCoverPhoto())
                 .photos(e.getPhotos().stream().map(this::toPhotoDTO).collect(Collectors.toList()))
                 .videos(e.getVideos().stream().map(this::toVideoDTO).collect(Collectors.toList()))

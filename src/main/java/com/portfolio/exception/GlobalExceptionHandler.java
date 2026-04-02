@@ -37,6 +37,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Identifiants incorrects"));
     }
 
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSecurity(SecurityException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(
             MethodArgumentNotValidException ex) {
@@ -53,7 +59,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiResponse<Void>> handleMaxSize(MaxUploadSizeExceededException ex) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(ApiResponse.error("Fichier trop volumineux"));
+                .body(ApiResponse.error("Fichier trop volumineux. Limite : 10 MB par photo, 100 MB par vidéo."));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -62,9 +68,19 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
-        log.error("Unexpected error", ex);
+    // Capture les erreurs Cloudinary (ex: fichier dépasse la limite du plan gratuit)
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRuntime(RuntimeException ex) {
+        String msg = ex.getMessage();
+        if (msg != null && msg.contains("File size too large")) {
+            log.warn("Cloudinary file size exceeded: {}", msg);
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                    .body(ApiResponse.error(
+                        "Fichier trop volumineux pour le plan Cloudinary gratuit. " +
+                        "Limite : 10 MB par image. Compressez votre fichier avant de l'envoyer."
+                    ));
+        }
+        log.error("Runtime error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Une erreur interne est survenue"));
     }

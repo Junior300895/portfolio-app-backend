@@ -24,6 +24,11 @@ public class AdminEventController {
         return ResponseEntity.ok(ApiResponse.ok(eventService.getEvents(page, size, null)));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<EventDetailDTO>> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(eventService.getEventByIdAdmin(id)));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<EventDetailDTO>> create(
             @Valid @RequestBody EventCreateRequest req) {
