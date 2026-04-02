@@ -74,6 +74,28 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    public DashboardStatsDTO getDashboardStats() {
+        long totalEvents = eventRepository.count();
+        long totalPhotos = photoRepository.count();
+        long totalVideos = videoRepository.count();
+
+        List<CategoryStatDTO> categoryStats = Arrays.stream(Event.EventCategory.values())
+                .map(cat -> CategoryStatDTO.builder()
+                        .category(cat)
+                        .count(eventRepository.countByCategory(cat))
+                        .build())
+                .collect(Collectors.toList());
+
+        return DashboardStatsDTO.builder()
+                .totalEvents(totalEvents)
+                .totalPhotos(totalPhotos)
+                .totalVideos(totalVideos)
+                .unreadMessages(0)
+                .categoryStats(categoryStats)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public List<EventSummaryDTO> getFeaturedEvents() {
         return eventRepository.findByFeaturedTrueOrderByEventDateDesc()
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());

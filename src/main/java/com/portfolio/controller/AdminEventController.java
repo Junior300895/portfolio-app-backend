@@ -29,6 +29,13 @@ public class AdminEventController {
         return ResponseEntity.ok(ApiResponse.ok(eventService.getEventByIdAdmin(id)));
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<DashboardStatsDTO>> getStats() {
+        return ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.noStore())
+                .body(ApiResponse.ok(eventService.getDashboardStats()));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<EventDetailDTO>> create(
             @Valid @RequestBody EventCreateRequest req) {
