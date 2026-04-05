@@ -91,10 +91,13 @@ public class PrivateGalleryService {
         galleryRepository.save(gallery);
     }
 
+    @Transactional
     public void deleteGallery(Long id) {
-        if (!galleryRepository.existsById(id))
-            throw new EntityNotFoundException("Galerie non trouvée: " + id);
-        galleryRepository.deleteById(id);
+        PrivateGallery gallery = galleryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Galerie non trouvée: " + id));
+        // Supprimer les favoris liés avant de supprimer la galerie
+        favoriteRepository.deleteByGallery(gallery);
+        galleryRepository.delete(gallery);
     }
 
     // ── Client : vérifier accès par token ────────────────────────

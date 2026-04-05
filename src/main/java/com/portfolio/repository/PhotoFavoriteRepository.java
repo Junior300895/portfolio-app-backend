@@ -4,6 +4,7 @@ import com.portfolio.model.PhotoFavorite;
 import com.portfolio.model.PrivateGallery;
 import com.portfolio.model.Photo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,5 +17,9 @@ public interface PhotoFavoriteRepository extends JpaRepository<PhotoFavorite, Lo
 
     boolean existsByGalleryAndPhoto(PrivateGallery gallery, Photo photo);
 
+    @Transactional
+    void deleteByGallery(PrivateGallery gallery);
+
+    @Transactional
     void deleteByGalleryAndPhoto(PrivateGallery gallery, Photo photo);
 }
