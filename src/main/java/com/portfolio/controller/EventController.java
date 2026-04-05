@@ -32,7 +32,7 @@ public class EventController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EventDetailDTO>> getEvent(@PathVariable Long id) {
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
+                // .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
                 .body(ApiResponse.ok(eventService.getEventById(id)));
     }
 
