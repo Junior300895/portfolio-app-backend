@@ -18,6 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -40,34 +41,37 @@ public class SecurityConfig {
     private String allowedOrigins;
 
     @Bean
+    public AuthenticationEntryPoint unauthorizedEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(401);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"success\":false,\"message\":\"Non authentifié. Veuillez vous connecter.\"}");
+        };
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(unauthorizedEntryPoint())
+            )
             .authorizeHttpRequests(auth -> auth
-                // ── Endpoints publics ──
                 .requestMatchers(HttpMethod.GET,  "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/gallery/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/media/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                // Galeries privées client
                 .requestMatchers(HttpMethod.GET,  "/api/gallery/private/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/gallery/private/**").permitAll()
-
-                // ── Swagger UI ──
                 .requestMatchers(
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/api-docs/**",
-                    "/v3/api-docs/**"
+                    "/swagger-ui/**", "/swagger-ui.html",
+                    "/api-docs/**", "/v3/api-docs/**"
                 ).permitAll()
-
-                // ── Endpoints admin (JWT requis) ──
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
