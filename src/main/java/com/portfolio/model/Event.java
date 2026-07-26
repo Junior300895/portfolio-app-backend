@@ -77,7 +77,7 @@ public class Event {
     }
 
     public enum EventCategory {
-        MARIAGE, ANNIVERSAIRE, CONFERENCE, SEMINAIRE, CONCERT,
+        MARIAGE, BAPTEME, HENNE, ANNIVERSAIRE, CONFERENCE, SEMINAIRE, CONCERT,
         CORPORATE, FAMILLE, AUTRE
     }
 }
