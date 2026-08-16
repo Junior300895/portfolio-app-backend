@@ -20,8 +20,10 @@ public class GalleryController {
 
     @GetMapping("/best")
     public ResponseEntity<ApiResponse<List<PhotoDTO>>> getBestPhotos() {
+        // Cache court : la galerie best-of évolue quand l'admin l'édite, il faut
+        // que les changements apparaissent rapidement côté public.
         return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(10, TimeUnit.MINUTES).cachePublic())
+        // .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).cachePublic())
         .body(ApiResponse.ok(eventService.getGalleryBestPhotos()));
     }
 }
