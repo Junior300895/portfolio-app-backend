@@ -2,6 +2,7 @@ package com.portfolio.service;
 
 import com.portfolio.dto.DtoClasses.*;
 import com.portfolio.model.Event;
+import com.portfolio.model.GalleryPhoto;
 import com.portfolio.model.Photo;
 import com.portfolio.model.Video;
 import com.portfolio.repository.*;
@@ -26,6 +27,8 @@ public class EventService {
     private final EventRepository eventRepository;
     private final PhotoRepository photoRepository;
     private final VideoRepository videoRepository;
+    private final GalleryPhotoRepository galleryPhotoRepository;
+    private final PrivateGalleryRepository privateGalleryRepository;
     private final StorageService storageService;
 
     @Transactional(readOnly = true)
@@ -147,8 +150,24 @@ public class EventService {
     public void deleteEvent(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Événement non trouvé: " + id));
-        // Delete associated files
+
+        // Un événement lié à une ou plusieurs galeries privées ne peut pas être supprimé :
+        // ces galeries sont des liens partagés aux clients. On informe l'admin.
+        long privateGalleries = privateGalleryRepository.countByEventId(id);
+        if (privateGalleries > 0) {
+            throw new com.portfolio.exception.BusinessRuleException(
+                "Impossible de supprimer cet événement : il est associé à " + privateGalleries +
+                " galerie(s) privée(s). Supprimez d'abord ces galeries privées dans le menu " +
+                "« Galeries privées », puis réessayez."
+            );
+        }
+
+        // Delete associated files — sauf ceux repris dans la galerie best-of,
+        // dont la copie autonome continue de pointer vers le fichier Cloudinary.
         event.getPhotos().forEach(p -> {
+            if (galleryPhotoRepository.existsByFilePath(p.getFilePath())) {
+                return; // best-of : on préserve le fichier
+            }
             storageService.deleteFile(p.getFilePath());
             storageService.deleteFile(p.getThumbnailPath());
         });
@@ -208,8 +227,12 @@ public class EventService {
     public void deletePhoto(Long photoId) {
         Photo photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Photo non trouvée: " + photoId));
-        storageService.deleteFile(photo.getFilePath());
-        storageService.deleteFile(photo.getThumbnailPath());
+        // Si la photo est reprise dans la galerie best-of, on préserve le fichier
+        // Cloudinary : la copie autonome de la galerie l'utilise toujours.
+        if (!galleryPhotoRepository.existsByFilePath(photo.getFilePath())) {
+            storageService.deleteFile(photo.getFilePath());
+            storageService.deleteFile(photo.getThumbnailPath());
+        }
         photoRepository.delete(photo);
     }
 
@@ -223,14 +246,52 @@ public class EventService {
     public PhotoDTO toggleGalleryBest(Long photoId) {
         Photo photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Photo non trouvée: " + photoId));
-        photo.setIsGalleryBest(!photo.getIsGalleryBest());
+        boolean nowBest = !photo.getIsGalleryBest();
+        photo.setIsGalleryBest(nowBest);
+
+        if (nowBest) {
+            // Ajout à la galerie best-of : on crée une copie autonome (URLs Cloudinary
+            // dupliquées) qui survivra à la suppression de l'événement.
+            if (!galleryPhotoRepository.existsBySourcePhotoId(photo.getId())) {
+                galleryPhotoRepository.save(GalleryPhoto.builder()
+                        .sourcePhotoId(photo.getId())
+                        .filePath(photo.getFilePath())
+                        .thumbnailPath(photo.getThumbnailPath())
+                        .caption(photo.getCaption())
+                        .sortOrder(photo.getSortOrder())
+                        .build());
+            }
+        } else {
+            // Retrait de la galerie : on supprime la copie. Le fichier Cloudinary
+            // n'est PAS supprimé car la photo d'événement l'utilise toujours.
+            galleryPhotoRepository.deleteBySourcePhotoId(photo.getId());
+        }
         return toPhotoDTO(photoRepository.save(photo));
     }
 
     @Transactional(readOnly = true)
     public List<PhotoDTO> getGalleryBestPhotos() {
-        return photoRepository.findByIsGalleryBestTrueOrderByUploadedAtDesc()
-                .stream().map(this::toPhotoDTO).collect(Collectors.toList());
+        return galleryPhotoRepository.findAllByOrderByCreatedAtDesc()
+                .stream().map(this::galleryToPhotoDTO).collect(Collectors.toList());
+    }
+
+    /** Supprime une photo de la galerie best-of (gestion des best-of orphelins). */
+    public void deleteGalleryPhoto(Long galleryPhotoId) {
+        GalleryPhoto gp = galleryPhotoRepository.findById(galleryPhotoId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Photo galerie non trouvée: " + galleryPhotoId));
+        // On ne supprime le fichier Cloudinary que si aucune photo d'événement ne l'utilise encore.
+        if (!photoRepository.existsByFilePath(gp.getFilePath())) {
+            storageService.deleteFile(gp.getFilePath());
+            storageService.deleteFile(gp.getThumbnailPath());
+        }
+        // Décoche le drapeau sur la photo source si elle existe toujours.
+        if (gp.getSourcePhotoId() != null) {
+            photoRepository.findById(gp.getSourcePhotoId()).ifPresent(p -> {
+                p.setIsGalleryBest(false);
+                photoRepository.save(p);
+            });
+        }
+        galleryPhotoRepository.delete(gp);
     }
 
     // ── Mappers ──────────────────────────────────────────────
@@ -258,6 +319,13 @@ public class EventService {
                 .photos(e.getPhotos().stream().map(this::toPhotoDTO).collect(Collectors.toList()))
                 .videos(e.getVideos().stream().map(this::toVideoDTO).collect(Collectors.toList()))
                 .createdAt(e.getCreatedAt())
+                .build();
+    }
+
+    private PhotoDTO galleryToPhotoDTO(GalleryPhoto g) {
+        return PhotoDTO.builder()
+                .id(g.getId()).filePath(g.getFilePath()).thumbnailPath(g.getThumbnailPath())
+                .caption(g.getCaption()).isGalleryBest(true).sortOrder(g.getSortOrder())
                 .build();
     }
 

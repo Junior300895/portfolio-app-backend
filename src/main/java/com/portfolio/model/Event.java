@@ -35,8 +35,11 @@ public class Event {
     @Column(length = 300)
     private String location;
 
+    // columnDefinition = varchar(50) : évite que Hibernate 6.3 crée un type ENUM
+    // natif MySQL, sinon l'ajout de nouvelles catégories nécessiterait un ALTER
+    // manuel de la colonne à chaque fois.
     @Enumerated(EnumType.STRING)
-    @Column(length = 50)
+    @Column(length = 50, columnDefinition = "varchar(50)")
     private EventCategory category;
 
     @Column(nullable = false)

@@ -29,4 +29,10 @@ public class AdminMediaController {
     public ResponseEntity<ApiResponse<PhotoDTO>> toggleBest(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(eventService.toggleGalleryBest(id)));
     }
+
+    @DeleteMapping("/gallery/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteGalleryPhoto(@PathVariable Long id) {
+        eventService.deleteGalleryPhoto(id);
+        return ResponseEntity.ok(ApiResponse.ok("Photo retirée de la galerie", null));
+    }
 }

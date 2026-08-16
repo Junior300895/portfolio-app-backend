@@ -11,4 +11,5 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
     List<Photo> findByIsGalleryBestTrueOrderByUploadedAtDesc();
     void deleteByEventId(Long eventId);
     long countByEventId(Long eventId);
+    boolean existsByFilePath(String filePath);
 }

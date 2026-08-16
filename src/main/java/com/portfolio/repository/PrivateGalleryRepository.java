@@ -16,4 +16,6 @@ public interface PrivateGalleryRepository extends JpaRepository<PrivateGallery, 
 
     @Query("SELECT COUNT(g) FROM PrivateGallery g WHERE g.active = true")
     long countActive();
+
+    long countByEventId(Long eventId);
 }
